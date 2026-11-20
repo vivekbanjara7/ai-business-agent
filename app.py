@@ -1,4 +1,3 @@
-
 import json
 from pathlib import Path
 
@@ -22,7 +21,9 @@ THEME_OPTIONS = ["System", "Light", "Dark"]
 def load_theme_preference():
     try:
         if PREFERENCE_FILE.exists():
-            saved = json.loads(PREFERENCE_FILE.read_text(encoding="utf-8")).get("theme", "System")
+            saved = json.loads(PREFERENCE_FILE.read_text(encoding="utf-8")).get(
+                "theme", "System"
+            )
             if saved in THEME_OPTIONS:
                 return saved
     except (OSError, json.JSONDecodeError, AttributeError):
@@ -33,7 +34,9 @@ def load_theme_preference():
 def save_theme_preference():
     try:
         PREFERENCE_FILE.write_text(
-            json.dumps({"theme": st.session_state.get("theme_mode", "System")}, indent=2),
+            json.dumps(
+                {"theme": st.session_state.get("theme_mode", "System")}, indent=2
+            ),
             encoding="utf-8",
         )
     except OSError:
@@ -56,6 +59,9 @@ LIGHT_VARS = """
     --shadow: rgba(15, 23, 42, .07);
     --background-color: #f5f7fb; --secondary-background-color: #ffffff;
     --text-color: #172033; --primary-color: #2563eb;
+    --toggle-bg: #f1f5f9;
+    --toggle-border: #cbd5e1;
+    --toggle-icon: #334155; 
 """
 DARK_VARS = """
     --blue: #60a5fa; --blue-dark: #3b82f6; --page: #171717;
@@ -64,6 +70,9 @@ DARK_VARS = """
     --shadow: rgba(0, 0, 0, .30);
     --background-color: #171717; --secondary-background-color: #222222;
     --text-color: #f3f4f6; --primary-color: #60a5fa;
+    --toggle-bg: #383838;
+    --toggle-border: #666666;
+    --toggle-icon: #ffffff;
 """
 
 if st.session_state.theme_mode == "Dark":
@@ -79,6 +88,9 @@ elif st.session_state.theme_mode == "System":
         --shadow: rgba(0, 0, 0, .30);
         --background-color: #171717; --secondary-background-color: #222222;
         --text-color: #f3f4f6; --primary-color: #60a5fa;
+        --toggle-bg: #383838;
+        --toggle-border: #666666;
+        --toggle-icon: #ffffff;
       }
     }
     """
@@ -95,6 +107,55 @@ html, body, .stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
 h1, h2, h3, p, label, li { color: var(--text); }
 [data-testid="stSidebar"] { background: var(--surface) !important; border-right: 1px solid var(--border); }
 [data-testid="stSidebar"] * { color: var(--text); }
+/* Sidebar collapse and expand controls */
+/* Keep sidebar controls visible even without hovering */
+[data-testid="stSidebarCollapseButton"],
+[data-testid="stSidebarCollapseButton"] button,
+[data-testid="stSidebarExpandButton"],
+[data-testid="stSidebarExpandButton"] button,
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="stSidebarCollapsedControl"] button,
+button[aria-label="Collapse sidebar"],
+button[aria-label="Expand sidebar"] {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: flex !important;
+    background: var(--toggle-bg) !important;
+    border: 1px solid var(--toggle-border) !important;
+    border-radius: 8px !important;
+    color: var(--toggle-icon) !important;
+    box-shadow: none !important;
+}
+
+[data-testid="stSidebarCollapseButton"] svg,
+[data-testid="stSidebarExpandButton"] svg,
+[data-testid="stSidebarCollapsedControl"] svg,
+button[aria-label="Collapse sidebar"] svg,
+button[aria-label="Expand sidebar"] svg {
+    opacity: 1 !important;
+    visibility: visible !important;
+    color: var(--toggle-icon) !important;
+    fill: var(--toggle-icon) !important;
+    stroke: var(--toggle-icon) !important;
+}
+
+[data-testid="stSidebarCollapseButton"] svg,
+[data-testid="stSidebarCollapseButton"] svg *,
+[data-testid="stSidebarExpandButton"] svg,
+[data-testid="stSidebarExpandButton"] svg *,
+[data-testid="stSidebarCollapsedControl"] svg,
+[data-testid="stSidebarCollapsedControl"] svg * {
+    color: var(--toggle-icon) !important;
+    fill: var(--toggle-icon) !important;
+    stroke: var(--toggle-icon) !important;
+}
+
+[data-testid="stSidebarCollapseButton"] button:hover,
+[data-testid="stSidebarExpandButton"] button:hover,
+[data-testid="stSidebarCollapsedControl"] button:hover {
+    background: var(--surface) !important;
+    border-color: var(--blue) !important;
+}
 .sidebar-brand { font-size: 1.08rem; font-weight: 750; }
 .muted { color: var(--muted) !important; font-size: .9rem; line-height: 1.5; }
 .eyebrow { color: var(--blue) !important; font-size: .76rem; font-weight: 750; letter-spacing: .13em; margin-bottom: .55rem; }
@@ -266,7 +327,6 @@ css = css_template.replace("THEME_VARS", theme_vars).replace("SYSTEM_THEME", sys
 st.markdown(css, unsafe_allow_html=True)
 
 
-
 # ==========================================
 # 4. SESSION STATE
 # ==========================================
@@ -281,6 +341,7 @@ if "pending_prompt" not in st.session_state:
 # ==========================================
 # 5. MESSAGE DISPLAY
 # ==========================================
+
 
 def render_message(role, content, index):
 
@@ -298,8 +359,7 @@ def render_message(role, content, index):
         with st.container(key=key):
 
             st.markdown(
-                f'<div class="chat-label">{label}</div>',
-                unsafe_allow_html=True
+                f'<div class="chat-label">{label}</div>', unsafe_allow_html=True
             )
 
             st.markdown(content)
@@ -312,13 +372,12 @@ def render_message(role, content, index):
 with st.sidebar:
 
     st.markdown(
-        '<div class="sidebar-brand">🤖 AI Business Agent</div>',
-        unsafe_allow_html=True
+        '<div class="sidebar-brand">🤖 AI Business Agent</div>', unsafe_allow_html=True
     )
 
     st.markdown(
         '<div class="muted">Research, calculations, and business planning.</div>',
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
     st.markdown("**Appearance**")
@@ -332,11 +391,7 @@ with st.sidebar:
 
     st.divider()
 
-    if st.button(
-        "＋  New chat",
-        type="primary",
-        use_container_width=True
-    ):
+    if st.button("＋  New chat", type="primary", use_container_width=True):
 
         st.session_state.chat_history = []
         st.session_state.pending_prompt = None
@@ -349,9 +404,9 @@ with st.sidebar:
 
     st.markdown(
         f'<div class="muted">'
-        f'{len(st.session_state.chat_history) // 2} '
-        'completed conversation turn(s)</div>',
-        unsafe_allow_html=True
+        f"{len(st.session_state.chat_history) // 2} "
+        "completed conversation turn(s)</div>",
+        unsafe_allow_html=True,
     )
 
     st.divider()
@@ -360,12 +415,12 @@ with st.sidebar:
 
     st.markdown(
         '<div class="muted">Up to 3 web searches per request</div>',
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
     st.markdown(
         '<div class="muted">Up to 5 tool calls per request</div>',
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
 
@@ -373,10 +428,7 @@ with st.sidebar:
 # 7. MAIN WORKSPACE
 # ==========================================
 
-st.markdown(
-    '<div class="eyebrow">YOUR AI WORKSPACE</div>',
-    unsafe_allow_html=True
-)
+st.markdown('<div class="eyebrow">YOUR AI WORKSPACE</div>', unsafe_allow_html=True)
 
 if not st.session_state.chat_history:
 
@@ -384,51 +436,41 @@ if not st.session_state.chat_history:
 
     st.markdown(
         '<div class="hero-subtitle">'
-        'Your AI partner for research, numbers, and practical business decisions.'
-        '</div>',
-        unsafe_allow_html=True
+        "Your AI partner for research, numbers, and practical business decisions."
+        "</div>",
+        unsafe_allow_html=True,
     )
 
     st.markdown(
-        '<div class="section-label">Start with a task</div>',
-        unsafe_allow_html=True
+        '<div class="section-label">Start with a task</div>', unsafe_allow_html=True
     )
 
     starters = [
-
         (
             "💡  Business ideas",
-            "Suggest 3 realistic digital product business ideas I can start with a ₹0 budget. Explain the audience and how to validate demand."
+            "Suggest 3 realistic digital product business ideas I can start with a ₹0 budget. Explain the audience and how to validate demand.",
         ),
-
         (
             "🧮  Calculate profit",
-            "Help me calculate revenue, costs, profit, and the number of sales needed to reach my monthly income target. Ask me for any missing numbers."
+            "Help me calculate revenue, costs, profit, and the number of sales needed to reach my monthly income target. Ask me for any missing numbers.",
         ),
-
         (
             "🔎  Market research",
-            "Research a business niche, identify its target customers, competitors, and problems customers are willing to pay to solve."
+            "Research a business niche, identify its target customers, competitors, and problems customers are willing to pay to solve.",
         ),
-
         (
             "📈  Growth strategy",
-            "Create a practical beginner-friendly marketing and growth plan for a small online business with a very limited budget."
-        )
-
+            "Create a practical beginner-friendly marketing and growth plan for a small online business with a very limited budget.",
+        ),
     ]
 
     col1, col2 = st.columns(2, gap="medium")
 
     for i, (label, prompt) in enumerate(starters):
 
-        with (col1 if i % 2 == 0 else col2):
+        with col1 if i % 2 == 0 else col2:
 
-            if st.button(
-                label,
-                key=f"starter_{i}",
-                use_container_width=True
-            ):
+            if st.button(label, key=f"starter_{i}", use_container_width=True):
 
                 st.session_state.pending_prompt = prompt
                 st.rerun()
@@ -439,11 +481,7 @@ else:
 
     for i, message in enumerate(st.session_state.chat_history):
 
-        render_message(
-            message["role"],
-            message["content"],
-            i
-        )
+        render_message(message["role"], message["content"], i)
 
 
 # ==========================================
@@ -464,10 +502,7 @@ if request:
 
         user_index = len(st.session_state.chat_history)
 
-        st.session_state.chat_history.append({
-            "role": "user",
-            "content": request
-        })
+        st.session_state.chat_history.append({"role": "user", "content": request})
 
         render_message("user", request, user_index)
 
@@ -480,7 +515,7 @@ if request:
             with st.container(key=f"msg_assistant_{assistant_index}"):
                 st.markdown(
                     '<div class="chat-label">AI BUSINESS AGENT</div>',
-                    unsafe_allow_html=True
+                    unsafe_allow_html=True,
                 )
                 answer_placeholder = st.empty()
 
@@ -489,18 +524,10 @@ if request:
             answer_placeholder.markdown(streamed_answer[0])
 
         try:
-            with st.status(
-                "Working on your request...",
-                expanded=False
-            ) as work_status:
-                answer = agent.run_agent(
-                    request,
-                    on_token=display_token
-                )
+            with st.status("Working on your request...", expanded=False) as work_status:
+                answer = agent.run_agent(request, on_token=display_token)
                 work_status.update(
-                    label="Response complete",
-                    state="complete",
-                    expanded=False
+                    label="Response complete", state="complete", expanded=False
                 )
 
         except Exception as exc:
@@ -515,7 +542,4 @@ if request:
         if not streamed_answer[0]:
             answer_placeholder.markdown(answer)
 
-        st.session_state.chat_history.append({
-            "role": "assistant",
-            "content": answer
-        })
+        st.session_state.chat_history.append({"role": "assistant", "content": answer})
